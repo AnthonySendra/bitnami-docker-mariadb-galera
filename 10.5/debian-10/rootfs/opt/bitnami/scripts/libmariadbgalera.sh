@@ -105,8 +105,10 @@ get_galera_cluster_bootstrap_value() {
             clusterBootstrap="yes"
         elif [[ -n "$clusterAddress" ]]; then
             clusterBootstrap="yes"
+            info "ok7"
             local_ip=$(resolveip -s "$HOSTNAME")
             read -r -a hosts <<< "$(tr ',' ' ' <<< "${clusterAddress#*://}")"
+            info "ok8"
             if [[ "${#hosts[@]}" -eq "1" ]]; then
                 read -r -a cluster_ips <<< "$(resolveip "${hosts[0]}" 2>/dev/null | sed 's/IP address of .* is//' | tr '\n' ' ')"
                 if [[ "${#cluster_ips[@]}" -gt "1" ]] || ( [[ "${#cluster_ips[@]}" -eq "1" ]] && [[ "${cluster_ips[0]}" != "$local_ip" ]] ) ; then
@@ -116,7 +118,9 @@ get_galera_cluster_bootstrap_value() {
                 fi
             else
                 for host in "${hosts[@]}"; do
+                    info "ok9"
                     host_ip=$(resolveip -s "${host%:*}")
+                    info "ok10"
                     if [[ -n "$host_ip" ]] && [[ "$host_ip" != "$local_ip" ]]; then
                         clusterBootstrap="no"
                     fi
@@ -321,23 +325,23 @@ mysql_galera_update_custom_config() {
     local galera_node_name
     galera_node_name="$(get_node_name)"
     [[ "$galera_node_name" != "$DB_GALERA_DEFAULT_NODE_NAME" ]] && mysql_conf_set "wsrep_node_name" "$galera_node_name" "galera"
-
+    info "ok1"
     local galera_node_address
     galera_node_address="$(get_node_address)"
     [[ "$galera_node_address" != "$DB_GALERA_DEFAULT_NODE_ADDRESS" ]] && mysql_conf_set "wsrep_node_address" "$galera_node_address" "galera"
-
+    info "ok2"
     [[ "$DB_GALERA_CLUSTER_NAME" != "$DB_GALERA_DEFAULT_CLUSTER_NAME" ]] && mysql_conf_set "wsrep_cluster_name" "$DB_GALERA_CLUSTER_NAME" "galera"
-
+    info "ok3"
     local galera_cluster_address
     galera_cluster_address="$(get_galera_cluster_address_value)"
     [[ "$galera_cluster_address" != "$DB_GALERA_DEFAULT_CLUSTER_ADDRESS" ]] && mysql_conf_set "wsrep_cluster_address" "$galera_cluster_address" "galera"
-
+    info "ok4"
     [[ "$DB_GALERA_SST_METHOD" != "$DB_GALERA_DEFAULT_SST_METHOD" ]] && mysql_conf_set "wsrep_sst_method" "$DB_GALERA_SST_METHOD" "galera"
-
+    info "ok5"
     local galera_auth_string="${DB_GALERA_MARIABACKUP_USER}:${DB_GALERA_MARIABACKUP_PASSWORD}"
     local default_auth_string="${DB_GALERA_DEFAULT_MARIABACKUP_USER}:${DB_GALERA_DEFAULT_MARIABACKUP_PASSWORD}"
     [[ "$galera_auth_string" != "$default_auth_string" ]] && mysql_conf_set "wsrep_sst_auth" "$galera_auth_string" "galera"
-
+        info "ok6"
     if is_boolean_yes "$DB_ENABLE_TLS" && ! grep -q "socket.ssl_cert=" "$DB_TLS_CERT_FILE"; then
         info "Setting ENABLE_TLS"
         cat >> "$DB_CONF_FILE" <<EOF
