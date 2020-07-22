@@ -936,6 +936,7 @@ mysql_install_db() {
         args+=("--auth-root-authentication-method=normal")
     fi
     info "okokok13"
+    ls $DB_BIN_DIR
     debug_execute "$command" "${args[@]}"
     info "okokok14"
 }
