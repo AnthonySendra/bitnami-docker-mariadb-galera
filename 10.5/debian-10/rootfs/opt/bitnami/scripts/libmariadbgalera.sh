@@ -503,8 +503,11 @@ info "okokok1"
             info "okokok3"
             debug "Cleaning data directory to ensure successfully initialization"
             rm -rf "${DB_DATA_DIR:?}"/*
+            info "okokok4"
             mysql_install_db
+            info "okokok5"
             mysql_start_bg
+            info "okokok6"
             debug "Deleting all users to avoid issues with galera configuration"
             mysql_execute "mysql" <<EOF
 DELETE FROM mysql.user WHERE user not in ('mysql.sys','mariadb.sys');
@@ -826,7 +829,7 @@ mysql_start_bg() {
     # Add flags specified via the 'DB_EXTRA_FLAGS' environment variable
     read -r -a db_extra_flags <<< "$(mysql_extra_flags)"
     [[ "${#db_extra_flags[@]}" -gt 0 ]] && flags+=("${db_extra_flags[@]}")
-
+    info "okokok7"
     # Do not start as root, to avoid permission issues
     am_i_root && flags+=("--user=${DB_DAEMON_USER}")
 
@@ -835,20 +838,21 @@ mysql_start_bg() {
     flags+=("$@")
 
     is_mysql_running && return
-
+    info "okokok8"
     info "Starting $DB_FLAVOR in background"
     debug_execute "${DB_SBIN_DIR}/mysqld" "${flags[@]}" &
-
+    info "okokok9"
     # we cannot use wait_for_mysql_access here as mysql_upgrade for MySQL >=8 depends on this command
     # users are not configured on slave nodes during initialization due to --skip-slave-start
     wait_for_mysql
-
+    info "okokok10"
     # Special configuration flag for system with slow disks that could take more time
     # in initializing
     if [[ -n "${DB_INIT_SLEEP_TIME}" ]]; then
         debug "Sleeping ${DB_INIT_SLEEP_TIME} seconds before continuing with initialization"
         sleep "${DB_INIT_SLEEP_TIME}"
     fi
+        info "okokok11"
 }
 
 ########################
@@ -924,13 +928,16 @@ mysql_install_db() {
     local command="${DB_BIN_DIR}/mysql_install_db"
     local -a args=("--defaults-file=${DB_CONF_FILE}" "--basedir=${DB_BASE_DIR}" "--datadir=${DB_DATA_DIR}")
     am_i_root && args=("${args[@]}" "--user=$DB_DAEMON_USER")
+    info "okokok12"
     if [[ "$DB_FLAVOR" = "mysql" ]]; then
         command="${DB_BIN_DIR}/mysqld"
         args+=("--initialize-insecure")
     else
         args+=("--auth-root-authentication-method=normal")
     fi
+    info "okokok13"
     debug_execute "$command" "${args[@]}"
+    info "okokok14"
 }
 
 ########################
