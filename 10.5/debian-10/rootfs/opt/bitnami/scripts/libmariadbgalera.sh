@@ -481,7 +481,7 @@ mysql_initialize() {
             warn "Could not inject custom configuration for the ${DB_FLAVOR} configuration file '$DB_CONF_DIR/bitnami/my_custom.cnf' because it is not writable."
         fi
     fi
-
+info "okokok1"
     if [[ -e "$DB_DATA_DIR/mysql" ]]; then
         info "Persisted data detected. Restoring"
 
@@ -497,8 +497,10 @@ mysql_initialize() {
 
         return
     else
+        info "okokok2"
         # initialization should not be performed on non-primary nodes of a galera cluster
         if is_boolean_yes "$(get_galera_cluster_bootstrap_value)"; then
+            info "okokok3"
             debug "Cleaning data directory to ensure successfully initialization"
             rm -rf "${DB_DATA_DIR:?}"/*
             mysql_install_db
@@ -542,6 +544,7 @@ EOF
             fi
         fi
     fi
+    info "okokok4"
 }
 
 ########################
