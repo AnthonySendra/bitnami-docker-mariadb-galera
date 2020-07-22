@@ -620,9 +620,12 @@ get_node_name() {
 #   String with node address
 #########################
 get_node_address() {
+    info "okok1"
     if [[ -n "$DB_GALERA_NODE_ADDRESS" ]]; then
+            info "okok2"
         echo "$DB_GALERA_NODE_ADDRESS"
     else
+        info "okok3"
         # In some environments, the network may not be fully set up when starting the initialization
         # So, to avoid issues, we retry the 'hostname' command until it succeeds (for a few minutes)
         local -r retries="60"
@@ -630,6 +633,7 @@ get_node_address() {
         retry_while "hostname -i" "$retries" "$seconds" >/dev/null
         hostname -i
     fi
+            info "okok4"
 }
 
 ########################
