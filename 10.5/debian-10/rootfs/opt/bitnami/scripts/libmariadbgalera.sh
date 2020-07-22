@@ -592,6 +592,8 @@ mysql_custom_init_scripts() {
 #   String with node name
 #########################
 get_node_name() {
+    info "before"
+    echo "$DB_GALERA_NODE_NAME"
     if [[ -n "$DB_GALERA_NODE_NAME" ]]; then
         echo "$DB_GALERA_NODE_NAME"
     else
