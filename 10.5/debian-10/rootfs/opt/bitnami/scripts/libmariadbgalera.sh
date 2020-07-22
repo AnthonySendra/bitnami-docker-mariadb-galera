@@ -27,7 +27,7 @@ get_previous_boot() {
 
 ########################
 # Create a flag file to indicate previous boot
-# Globals:
+# Globan:
 #   DB_*
 # Arguments:
 #   None
@@ -936,7 +936,8 @@ mysql_install_db() {
         args+=("--auth-root-authentication-method=normal")
     fi
     info "okokok13"
-    ls $DB_BIN_DIR
+    info $DB_BIN_DIR
+    info $(ls $DB_BIN_DIR)
     debug_execute "$command" "${args[@]}"
     info "okokok14"
 }
