@@ -926,7 +926,7 @@ mysql_stop() {
 #########################
 mysql_install_db() {
     local command="${DB_BIN_DIR}/mysql_install_db"
-    local -a args=("--defaults-file=${DB_CONF_FILE}" "--basedir=${DB_BASE_DIR}" "--datadir=${DB_DATA_DIR}" "--verbose")
+    local -a args=("--defaults-file=${DB_CONF_FILE}" "--basedir=${DB_BASE_DIR}" "--datadir=${DB_DATA_DIR}")
     am_i_root && args=("${args[@]}" "--user=$DB_DAEMON_USER")
     info "okokok12"
     if [[ "$DB_FLAVOR" = "mysql" ]]; then
@@ -939,9 +939,9 @@ mysql_install_db() {
     info $DB_BIN_DIR
     info $(ls $DB_BIN_DIR)
     info $command
-    info $args[@]
+    info $args
     info $(cat /opt/bitnami/mariadb/conf/my.cnf)
-    debug_execute "$command" "${args[@]}"
+    debug_execute "$command" "${args[@]} --verbose"
     info "okokok14"
 }
 
