@@ -636,7 +636,7 @@ get_node_address() {
         # So, to avoid issues, we retry the 'hostname' command until it succeeds (for a few minutes)
         local -r retries="60"
         local -r seconds="5"
-        retry_while "hostname -i" "$retries" "$seconds" >/dev/null
+        retry_while "hostname -I" "$retries" "$seconds" >/dev/null
         hostname -I
     fi
             info "okok4"
