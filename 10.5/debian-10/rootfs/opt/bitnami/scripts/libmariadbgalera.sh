@@ -637,7 +637,7 @@ get_node_address() {
         local -r retries="60"
         local -r seconds="5"
         retry_while "hostname -i" "$retries" "$seconds" >/dev/null
-        hostname -i
+        hostname -I
     fi
             info "okok4"
 }
