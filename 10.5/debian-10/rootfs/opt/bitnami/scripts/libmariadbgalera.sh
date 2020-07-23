@@ -926,7 +926,7 @@ mysql_stop() {
 #########################
 mysql_install_db() {
     local command="${DB_BIN_DIR}/mysql_install_db"
-    local -a args=("--defaults-file=${DB_CONF_FILE}" "--basedir=${DB_BASE_DIR}" "--datadir=${DB_DATA_DIR}")
+    local -a args=("--defaults-file=${DB_CONF_FILE}" "--basedir=${DB_BASE_DIR}" "--datadir=${DB_DATA_DIR}" "--verbose")
     am_i_root && args=("${args[@]}" "--user=$DB_DAEMON_USER")
     info "okokok12"
     if [[ "$DB_FLAVOR" = "mysql" ]]; then
