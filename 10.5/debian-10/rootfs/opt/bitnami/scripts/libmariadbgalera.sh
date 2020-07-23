@@ -940,7 +940,7 @@ mysql_install_db() {
     info $(ls $DB_BIN_DIR)
     info $command
     info $args[@]
-    info $(cat/opt/bitnami/mariadb/conf/my.cnf)
+    info $(cat /opt/bitnami/mariadb/conf/my.cnf)
     debug_execute "$command" "${args[@]}"
     info "okokok14"
 }
