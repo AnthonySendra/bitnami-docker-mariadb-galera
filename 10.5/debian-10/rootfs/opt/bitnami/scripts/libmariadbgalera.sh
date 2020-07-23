@@ -938,6 +938,8 @@ mysql_install_db() {
     info "okokok13"
     info $DB_BIN_DIR
     info $(ls $DB_BIN_DIR)
+    info $command
+    info $args[@]
     debug_execute "$command" "${args[@]}"
     info "okokok14"
 }
