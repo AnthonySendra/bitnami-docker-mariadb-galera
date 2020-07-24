@@ -27,7 +27,7 @@ get_previous_boot() {
 
 ########################
 # Create a flag file to indicate previous boot
-# Globan:
+# Globals:
 #   DB_*
 # Arguments:
 #   None
@@ -105,12 +105,10 @@ get_galera_cluster_bootstrap_value() {
             clusterBootstrap="yes"
         elif [[ -n "$clusterAddress" ]]; then
             clusterBootstrap="yes"
-            info "ok7"
-            local_ip=$(resolveip -s "$HOSTNAME")
+            local_ip=$(hostname -I)
             read -r -a hosts <<< "$(tr ',' ' ' <<< "${clusterAddress#*://}")"
-            info "ok8"
             if [[ "${#hosts[@]}" -eq "1" ]]; then
-                read -r -a cluster_ips <<< "$(resolveip "${hosts[0]}" 2>/dev/null | sed 's/IP address of .* is//' | tr '\n' ' ')"
+                read -r -a cluster_ips <<< "$(getent hosts "${hosts[0]}" | awk '{print $1}' | tr '\n' ' ')"
                 if [[ "${#cluster_ips[@]}" -gt "1" ]] || ( [[ "${#cluster_ips[@]}" -eq "1" ]] && [[ "${cluster_ips[0]}" != "$local_ip" ]] ) ; then
                     clusterBootstrap="no"
                 else
@@ -118,9 +116,7 @@ get_galera_cluster_bootstrap_value() {
                 fi
             else
                 for host in "${hosts[@]}"; do
-                    info "ok9"
-                    host_ip=$(resolveip -s "${host%:*}")
-                    info "ok10"
+                    host_ip=$(getent hosts "${host%:*}" | awk '{print $1}')
                     if [[ -n "$host_ip" ]] && [[ "$host_ip" != "$local_ip" ]]; then
                         clusterBootstrap="no"
                     fi
@@ -325,23 +321,23 @@ mysql_galera_update_custom_config() {
     local galera_node_name
     galera_node_name="$(get_node_name)"
     [[ "$galera_node_name" != "$DB_GALERA_DEFAULT_NODE_NAME" ]] && mysql_conf_set "wsrep_node_name" "$galera_node_name" "galera"
-    info "ok1"
+
     local galera_node_address
     galera_node_address="$(get_node_address)"
     [[ "$galera_node_address" != "$DB_GALERA_DEFAULT_NODE_ADDRESS" ]] && mysql_conf_set "wsrep_node_address" "$galera_node_address" "galera"
-    info "ok2"
+
     [[ "$DB_GALERA_CLUSTER_NAME" != "$DB_GALERA_DEFAULT_CLUSTER_NAME" ]] && mysql_conf_set "wsrep_cluster_name" "$DB_GALERA_CLUSTER_NAME" "galera"
-    info "ok3"
+
     local galera_cluster_address
     galera_cluster_address="$(get_galera_cluster_address_value)"
     [[ "$galera_cluster_address" != "$DB_GALERA_DEFAULT_CLUSTER_ADDRESS" ]] && mysql_conf_set "wsrep_cluster_address" "$galera_cluster_address" "galera"
-    info "ok4"
+
     [[ "$DB_GALERA_SST_METHOD" != "$DB_GALERA_DEFAULT_SST_METHOD" ]] && mysql_conf_set "wsrep_sst_method" "$DB_GALERA_SST_METHOD" "galera"
-    info "ok5"
+
     local galera_auth_string="${DB_GALERA_MARIABACKUP_USER}:${DB_GALERA_MARIABACKUP_PASSWORD}"
     local default_auth_string="${DB_GALERA_DEFAULT_MARIABACKUP_USER}:${DB_GALERA_DEFAULT_MARIABACKUP_PASSWORD}"
     [[ "$galera_auth_string" != "$default_auth_string" ]] && mysql_conf_set "wsrep_sst_auth" "$galera_auth_string" "galera"
-        info "ok6"
+
     if is_boolean_yes "$DB_ENABLE_TLS" && ! grep -q "socket.ssl_cert=" "$DB_TLS_CERT_FILE"; then
         info "Setting ENABLE_TLS"
         cat >> "$DB_CONF_FILE" <<EOF
@@ -481,7 +477,7 @@ mysql_initialize() {
             warn "Could not inject custom configuration for the ${DB_FLAVOR} configuration file '$DB_CONF_DIR/bitnami/my_custom.cnf' because it is not writable."
         fi
     fi
-info "okokok1"
+
     if [[ -e "$DB_DATA_DIR/mysql" ]]; then
         info "Persisted data detected. Restoring"
 
@@ -497,17 +493,12 @@ info "okokok1"
 
         return
     else
-        info "okokok2"
         # initialization should not be performed on non-primary nodes of a galera cluster
         if is_boolean_yes "$(get_galera_cluster_bootstrap_value)"; then
-            info "okokok3"
             debug "Cleaning data directory to ensure successfully initialization"
             rm -rf "${DB_DATA_DIR:?}"/*
-            info "okokok4"
             mysql_install_db
-            info "okokok5"
             mysql_start_bg
-            info "okokok6"
             debug "Deleting all users to avoid issues with galera configuration"
             mysql_execute "mysql" <<EOF
 DELETE FROM mysql.user WHERE user not in ('mysql.sys','mariadb.sys');
@@ -547,7 +538,6 @@ EOF
             fi
         fi
     fi
-    info "okokok4"
 }
 
 ########################
@@ -624,20 +614,16 @@ get_node_name() {
 #   String with node address
 #########################
 get_node_address() {
-    info "okok1"
     if [[ -n "$DB_GALERA_NODE_ADDRESS" ]]; then
-            info "okok2"
         echo "$DB_GALERA_NODE_ADDRESS"
     else
-        info "okok3"
         # In some environments, the network may not be fully set up when starting the initialization
         # So, to avoid issues, we retry the 'hostname' command until it succeeds (for a few minutes)
         local -r retries="60"
         local -r seconds="5"
-        retry_while "hostname -I" "$retries" "$seconds" >/dev/null
-        hostname -I
+        retry_while "hostname -i" "$retries" "$seconds" >/dev/null
+        hostname -i
     fi
-            info "okok4"
 }
 
 ########################
@@ -827,7 +813,7 @@ mysql_start_bg() {
     # Add flags specified via the 'DB_EXTRA_FLAGS' environment variable
     read -r -a db_extra_flags <<< "$(mysql_extra_flags)"
     [[ "${#db_extra_flags[@]}" -gt 0 ]] && flags+=("${db_extra_flags[@]}")
-    info "okokok7"
+
     # Do not start as root, to avoid permission issues
     am_i_root && flags+=("--user=${DB_DAEMON_USER}")
 
@@ -836,21 +822,20 @@ mysql_start_bg() {
     flags+=("$@")
 
     is_mysql_running && return
-    info "okokok8"
+
     info "Starting $DB_FLAVOR in background"
     debug_execute "${DB_SBIN_DIR}/mysqld" "${flags[@]}" &
-    info "okokok9"
+
     # we cannot use wait_for_mysql_access here as mysql_upgrade for MySQL >=8 depends on this command
     # users are not configured on slave nodes during initialization due to --skip-slave-start
     wait_for_mysql
-    info "okokok10"
+
     # Special configuration flag for system with slow disks that could take more time
     # in initializing
     if [[ -n "${DB_INIT_SLEEP_TIME}" ]]; then
         debug "Sleeping ${DB_INIT_SLEEP_TIME} seconds before continuing with initialization"
         sleep "${DB_INIT_SLEEP_TIME}"
     fi
-        info "okokok11"
 }
 
 ########################
@@ -926,21 +911,13 @@ mysql_install_db() {
     local command="${DB_BIN_DIR}/mysql_install_db"
     local -a args=("--defaults-file=${DB_CONF_FILE}" "--basedir=${DB_BASE_DIR}" "--datadir=${DB_DATA_DIR}")
     am_i_root && args=("${args[@]}" "--user=$DB_DAEMON_USER")
-    info "okokok12"
     if [[ "$DB_FLAVOR" = "mysql" ]]; then
         command="${DB_BIN_DIR}/mysqld"
         args+=("--initialize-insecure")
     else
         args+=("--auth-root-authentication-method=normal")
     fi
-    info "okokok13"
-    info $DB_BIN_DIR
-    info $(ls $DB_BIN_DIR)
-    info $command
-    info $args
-    info $(cat /opt/bitnami/mariadb/conf/my.cnf)
-    debug_execute "$command" "${args[@]} --verbose"
-    info "okokok14"
+    debug_execute "$command" "${args[@]}"
 }
 
 ########################
