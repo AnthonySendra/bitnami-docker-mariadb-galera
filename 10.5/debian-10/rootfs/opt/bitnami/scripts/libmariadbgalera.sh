@@ -302,7 +302,7 @@ wsrep_slave_threads=4
 wsrep_cluster_address=${DB_GALERA_DEFAULT_CLUSTER_ADDRESS}
 wsrep_sst_auth=${DB_GALERA_DEFAULT_MARIABACKUP_USER}:${DB_GALERA_DEFAULT_MARIABACKUP_PASSWORD}
 wsrep_cluster_name=${DB_GALERA_DEFAULT_CLUSTER_NAME}
-wsrep_node_name=toto
+wsrep_node_name=${DB_GALERA_DEFAULT_NODE_NAME}
 wsrep_node_address=${DB_GALERA_DEFAULT_NODE_ADDRESS}
 
 [mariadb]
@@ -602,8 +602,6 @@ mysql_custom_init_scripts() {
 #   String with node name
 #########################
 get_node_name() {
-    info "before"
-    echo "$DB_GALERA_NODE_NAME"
     if [[ -n "$DB_GALERA_NODE_NAME" ]]; then
         echo "$DB_GALERA_NODE_NAME"
     else
